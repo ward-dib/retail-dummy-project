@@ -1,1 +1,1 @@
-# retail-dummy-project
+# wrdle-solver
