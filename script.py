@@ -49,12 +49,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # Letter frequency function; will count the occurance of the letters and sort them accordingly.
-
 def letter_freq():
     counts = {}
     sortedcounts = {}
     
-    for word in allwords():
+    for word in allwords:
         for letter in word:
             if letter.isalpha():
                 counts.setdefault(letter, 0)
@@ -68,7 +67,6 @@ def letter_freq():
 
 # Checks.
 print(letter_freq())
-print(type(letter_freq()))
 
 def plotting():
     fig = plt.figure(figsize = (10, 4))
@@ -81,14 +79,13 @@ def plotting():
     plt.show()
     fig.savefig('letter_freq.png', dpi = 200)
 
-print(plotting())
 
-def top5_words():
+def top_words():
     clw = []
     bestwords = []
     a = list(letter_freq().keys())
-    b = ''.join(a[0:5]) 
-    for i in allwords():
+    b = ''.join(a[0:7]) 
+    for i in allwords:
         c = all(x in b for x in i)
         if c:
             clw.append(i)
@@ -98,32 +95,14 @@ def top5_words():
         uniq_letters = len(set(i))
         if uniq_letters == 5:
             bestwords.append(i)
+    
     return bestwords
  
-print(f"The Words {(top5_words())} contain the 5 most frequently used letters.")
+print(f"{len(top_words())} words contain the 7 most frequently used letters.")
 
-def next5_words():
-    clw = []
-    bestwords = []
-    a = list(letter_freq().keys())
-    b = ''.join(a[5:10]) 
-    for i in allwords():
-        c = all(x in b for x in i)
-        if c:
-            clw.append(i)
-            clw.sort()
-    for i in clw:
-        uniq_letters = len(set(i))
-        if uniq_letters == 5:
-            bestwords.append(i)
-    return bestwords
+print(top_words())
+
  
-print(f"The words {(next5_words())} contain the 6th to 10th most frequently used letters.")
-
-# Full list hitting top 10 most frequent letters
-# ['aeros', 'arose', 'soare', 'unlit', 'until']
-# For possible first two guesses, ['arose', 'until'] will give a lot of info.
-
 # ---------- PART 3: Simple Weights ----------
 
 # Assignt weights to letters as the percentage of total.
@@ -139,13 +118,13 @@ def words_weighted(word):
 
 words_weighted("arose")
 
-def sorted_weights(words):
-    weight_tupples = sorted([(word, words_weighted(word)) for word in words],
-                            key=lambda x:x[1], reverse=True)
+def sorted_weights(allwords):
+    weight_tupples = sorted([(word, words_weighted(word)) for word in allwords],
+                            key = lambda x:x[1], reverse = False)
     return weight_tupples
 
-word_comms = sorted_weights(allwords)
-print(word_comms)
+top7 = sorted_weights(top_words())
+print(top7)
 
 # ---------- PART 4: Delete function to be called on given lists ----------
 
