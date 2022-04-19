@@ -126,29 +126,120 @@ def sorted_weights(allwords):
 top7 = sorted_weights(top_words())
 print(top7)
 
-# ---------- PART 4: Delete function to be called on given lists ----------
+# ---------- PART 4: SOLVER 1 (Deletes grey, yellow, keeps green, prints possible remaining words sorted by word weight above) ----------
 
-def remove_words(in_list, out_list):
-    new_list = []
-    for line in in_list:
-        new_words = ''.join([word for word in line.split()
-                             if not any([phrase in word for phrase in char_list])])
-        new_list.append(new_words)
-    return new_list
+# Green is "g"
+# Yellow is "y"
+# Black is "b"
+word_list = []
+word = allwords
+
+def letter_info(letter_hints: list):
+  black_letter = []
+  green_letter = []
+  yellow_letter = []
+  for l, hint in letter_hints:
+    if hint.lower() == 'b':
+      black_letter.append(l)
+    elif hint.lower() == 'g':
+      green_letter.append((l, guessed.index(l)))
+    else:
+      yellow_letter.append((l, guessed.index(l)))
+  return black_letter, green_letter, yellow_letter
+
+def with_green(word_list, green_letter):
+  if len(green_letter) > 0:
+    possible_words = []
+    for w in word_list:
+        try:
+          if all([w.index(l) == idx for l, idx in green_letter]):
+            possible_words.append(w)
+        except:
+          continue
+    return list(set(possible_words))
+  else:
+    return word_list
+
+def with_black(word_list: list, black_letter: list):
+  if len(black_letter) > 0:
+    discard = []
+    for w in word_list:
+        for l in black_letter:
+          if l in w:
+            discard.append(w)
+    return list(set(discard))
+  else:
+    return []
+
+def with_yellow(word_list: list, yellow_letter: list):
+  if len(yellow_letter) > 0:
+    possible_words = []
+    for w in word_list:
+      if all([l in w for l, idx in yellow_letter]) and all([w.index(l) != idx for l, idx in yellow_letter]):
+            possible_words.append(w)
+    return list(set(possible_words))
+  else:
+    return word_list
+
+def correct_word(green_letter):
+  word = ['_'] * 5
+  for letter, idx in green_letter:
+    word[idx] = letter
+  return ''.join(word)
+
+for i in word:
+  if len(i) == 5:
+    word_list.append(i.lower())
+
+word_list = list(set(word_list))
+hint = int(input(f"Inspiration starters (choose a number): "))
+if hint:
+  for word in list((sorted_weights(word_list)[:hint])):
+    print(word)
+else:
+  print("Ok, think of your own.")
+
+print("__________________________")
+
+
+while True:
+  guessed = input("Type guess: ").lower()
+  result = input("Type feedback: (bgy)")
+
+  if result != 'ggggg':
+    letter_hints = list(zip(list(guessed), list(result)))
+    black_letter, green_letter, yellow_letter = letter_info(letter_hints)
+    
+    discard = with_black(word_list, black_letter)
+    for ds in discard:
+      word_list.remove(ds)
+    corrects_list = with_green(word_list, green_letter)
+    possible_words = with_yellow(corrects_list, yellow_letter)
+    word_list = possible_words
+
+    print(f"Number of possible words: {len(possible_words)}")
+    print(f"Correct letters: {correct_word(green_letter)}")
+
+    if len(possible_words) > 50:
+      print(f"Possible words (top 50 listed): ")
+      for word in list((sorted_weights(word_list)[:50])):
+        print(word)
+    else:
+      print(f"All possible words:")
+      for word in list(sorted_weights(possible_words)):
+        print(word)
+    print("__________________________")
+
+  else:
+      print(f"Correct solution is: {guessed}")
+      break
   
-"""
 
-Example of use: 
 
-in_list = allwords
-out_list = ['a', 'o', 's']
+# ---------- PART 5: SOLVER 2 (Runs solver 1 with a condition) ----------
 
-# Any characters we want. Further down, this will be a list created by the guesser function, consisting of grey and yellow letters.
-# Then we call the function on the lists we created.
-guess = remove_words(in_list, out_list)
+# The idea is, IF len(possible_words) > remaining_attempts, AND all (possible_answers) have GGG, try entirely new letters. 
+# Get new info, and when you break the green cycle, proceed with guesser 1 again.
 
-"""
-
-# ---------- PART 5: Guesser 1 (deletes grey, yellow, repeat green.) ----------
 
 
