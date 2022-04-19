@@ -103,7 +103,7 @@ print(f"{len(top_words())} words contain the 7 most frequently used letters.")
 print(top_words())
 
  
-# ---------- PART 3: Simple Weights ----------
+# ---------- PART 3: Simple "Weights" ----------
 
 # Assignt weights to letters as the percentage of total.
 freq_percent = {char: val / sum(letter_freq().values())
@@ -116,23 +116,17 @@ def words_weighted(word):
         score += freq_percent[char]
     return score / (5 - len(set(word)) + 1)
 
-words_weighted("arose")
-
 def sorted_weights(allwords):
     weight_tupples = sorted([(word, words_weighted(word)) for word in allwords],
                             key = lambda x:x[1], reverse = False)
     return weight_tupples
 
-top7 = sorted_weights(top_words())
-print(top7)
 
 # ---------- PART 4: SOLVER 1 (Deletes grey, yellow, keeps green, prints possible remaining words sorted by word weight above) ----------
 
 # Green is "g"
 # Yellow is "y"
 # Black is "b"
-word_list = []
-word = allwords
 
 def letter_info(letter_hints: list):
   black_letter = []
@@ -187,7 +181,10 @@ def correct_word(green_letter):
     word[idx] = letter
   return ''.join(word)
 
-for i in word:
+
+word_list = []
+words = allwords
+for i in words:
   if len(i) == 5:
     word_list.append(i.lower())
 
@@ -200,7 +197,6 @@ else:
   print("Ok, think of your own.")
 
 print("__________________________")
-
 
 while True:
   guessed = input("Type guess: ").lower()
