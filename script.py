@@ -109,25 +109,27 @@ print(top_words())
 freq_percent = {char: val / sum(letter_freq().values())
                 for char, val in letter_freq().items()}
 
-
+# Score the word on frequency % of its letters.
 def words_weighted(word):
     score = 0.0
-    for char in word:
-        score += freq_percent[char]
+    for letter in word:
+        score += freq_percent[letter]
     return score / (5 - len(set(word)) + 1)
 
+# Sort them, print as a tupple.
 def sorted_weights(allwords):
-    weight_tupples = sorted([(word, words_weighted(word)) for word in allwords],
+    weighted = sorted([(word, words_weighted(word)) for word in allwords],
                             key = lambda x:x[1], reverse = False)
-    return weight_tupples
+    return weighted
 
 
 # ---------- PART 4: SOLVER 1 (Deletes grey, yellow, keeps green, prints possible remaining words sorted by word weight above) ----------
 
 # Green is "g"
 # Yellow is "y"
-# Black is "b"
+# Black is "b" - calling is black is easier, so to have a new letter B to use.
 
+# Put the letter hints we get from the game into lists.
 def letter_info(letter_hints: list):
   black_letter = []
   green_letter = []
@@ -141,6 +143,8 @@ def letter_info(letter_hints: list):
       yellow_letter.append((l, guessed.index(l)))
   return black_letter, green_letter, yellow_letter
 
+# Words with green letters get added to possible words list, with the green letter in the same index.
+# Started putting things into sets to easily do unions and intersections and make sure no duplicates exist.
 def with_green(word_list, green_letter):
   if len(green_letter) > 0:
     possible_words = []
@@ -154,6 +158,7 @@ def with_green(word_list, green_letter):
   else:
     return word_list
 
+# Remove words with black letters, put them in a discard list.
 def with_black(word_list: list, black_letter: list):
   if len(black_letter) > 0:
     discard = []
@@ -165,6 +170,7 @@ def with_black(word_list: list, black_letter: list):
   else:
     return []
 
+# Words with yellow letters get added to possible words list, with the yellow letter in a different index.
 def with_yellow(word_list: list, yellow_letter: list):
   if len(yellow_letter) > 0:
     possible_words = []
@@ -176,7 +182,7 @@ def with_yellow(word_list: list, yellow_letter: list):
     return word_list
 
 def correct_word(green_letter):
-  word = ['_'] * 5
+  word = ['_', '_', '_', '_', '_']
   for letter, idx in green_letter:
     word[idx] = letter
   return ''.join(word)
@@ -195,7 +201,6 @@ if hint:
     print(word)
 else:
   print("Ok, think of your own.")
-
 print("__________________________")
 
 while True:
