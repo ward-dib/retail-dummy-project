@@ -1,9 +1,14 @@
 import random
 
-with open("allwords.txt", "r") as file:
-   allwords = eval(file.readline())
-
-#answer = random.choice(allwords)
+with open('allwords.txt', 'r') as a:
+    allwords = []
+    allwords = a.read().split('","')
+    
+with open('answerwords.txt', 'r') as a:
+    NYTwords = []
+    NYTwords = a.read().split('","')
+    
+#answer = random.choice(NYTwords)
 #print(answer)
 
 answer = "stare"
@@ -11,7 +16,7 @@ answer = "stare"
 #guess = random.choice(allwords)
 #print(guess)
 
-guess = "arise"
+guess = "arose"
  
 def playWordle():
           
@@ -44,4 +49,14 @@ def playWordle():
     return result
 
 print(playWordle())
+
+def color_hints():
+    color_hints = []
+    colorstr = ""
+    for values in playWordle().values():
+        color_hints.append(values)
+    colorstr = colorstr.join(color_hints)    
+    return colorstr
+
+print(color_hints())
 
