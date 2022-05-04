@@ -1,59 +1,17 @@
-# ---------- PART 1 : Get data ----------
+##### WORDLE SOLVER PART 1 #####
 
-# Import required libraries.
-import nltk
-nltk.download('words')
-from nltk.corpus import words
-words = words.words()
-import re
+# Open the file. This file contains only the official answer word list, 2309 entries.
+with open('answerwords.txt', 'r') as a:
+    answerwords = []
+    answerwords = a.read().split('","')
 
-# Open the text file containing all the words that Wordle (NYT) uses.
-# Copied from the website source code at https://www.nytimes.com/games/wordle/main.b84b7aa7.js.
-with open('nytwords.txt', 'r') as a:
-    nytwords = []
-    nytwords = a.read().split('","')
-
-
-# Extract only 5 letter words from the dataset.
-def allwords():
-    
-    wordlist = words
-        
-    # Manyally add NYT Wordle words that are not in our dataset.
-    wordlist = list(set(nytwords + wordlist)) 
-    wordlist = sorted(wordlist)
-    
-    # Remove anything more than 5 letters
-    wordlist = filter(lambda words: len (words) == 5, wordlist) 
-    wordlist = [words for words in wordlist if len (words) == 5]
-
-    # Remove capital letters (removing names of cities and people), special characters, and empties.
-    wordlist = [re.sub(r'\s*[A-Z]\w*\s*', '', string) for string in wordlist]
-    wordlist = [string.replace('"', '') for string in wordlist]
-    wordlist = ' '.join(wordlist).split()
-    
-    # Save the output to a text file.
-    with open("allwords.txt", "w") as output:
-       output.write(str(wordlist))
-
-    return wordlist
-
-# Call as a new list.
-print(allwords())
-print(len(list(allwords())))
-
-# ---------- PART 2 : Letter Frequency ----------
-
-# Import required libraries.
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # Letter frequency function; will count the occurance of the letters and sort them accordingly.
 def letter_freq():
     counts = {}
     sortedcounts = {}
     
-    for word in allwords:
+    for word in answerwords:
         for letter in word:
             if letter.isalpha():
                 counts.setdefault(letter, 0)
@@ -65,87 +23,93 @@ def letter_freq():
                 sortedcounts = dict(sortedcounts)
     return sortedcounts
 
-# Checks.
-print(letter_freq())
-
-def plotting():
-    fig = plt.figure(figsize = (10, 4))
-    sns.set(style = 'darkgrid')
-    plt.bar(*zip(*letter_freq().items()), color = '#756bb1')
-    plt.axhline(y = (max(letter_freq().values())/2),
-                ls = 'solid', lw = 2, c = '#41b6c4', alpha = 0.75)
-    plt.xlabel('Letters')
-    plt.ylabel('Number of occurances in 5 letter words')
-    plt.show()
-    fig.savefig('letter_freq.png', dpi = 200)
-
-
-def top_words():
-    clw = []
-    bestwords = []
-    a = list(letter_freq().keys())
-    b = ''.join(a[0:7]) 
-    for i in allwords:
-        c = all(x in b for x in i)
-        if c:
-            clw.append(i)
-            clw.sort()
-    # make sure no letters are repeated (aalii?) so we get the most amount of information
-    for i in clw:
-        uniq_letters = len(set(i))
-        if uniq_letters == 5:
-            bestwords.append(i)
-    
-    return bestwords
- 
-print(f"{len(top_words())} words contain the 7 most frequently used letters.")
-
-print(top_words())
-
- 
-# ---------- PART 3: Simple "Weights" ----------
-
 # Assignt weights to letters as the percentage of total.
 freq_percent = {char: val / sum(letter_freq().values())
                 for char, val in letter_freq().items()}
 
-# Score the word on frequency % of its letters.
 def words_weighted(word):
     score = 0.0
-    for letter in word:
-        score += freq_percent[letter]
+    for char in word:
+        score += freq_percent[char]
     return score / (5 - len(set(word)) + 1)
 
-# Sort them, print as a tupple.
-def sorted_weights(allwords):
-    weighted = sorted([(word, words_weighted(word)) for word in allwords],
-                            key = lambda x:x[1], reverse = False)
-    return weighted
+def sorted_weights(answerwords):
+    weight_tupples = sorted([(word, words_weighted(word)) for word in answerwords],
+                            key=lambda x:x[1], reverse = True)
+    return weight_tupples
+# Open a file with all the possible words, 12974 entiries.
+with open('allwords.txt', 'r') as a:
+    allwords = []
+    allwords = a.read().split('","')
 
+# some arbitrary answer/guess for the sake of trial.
+answer = "stare"
+guess = "arose"
 
-# ---------- PART 4: SOLVER 1 (Deletes grey, yellow, keeps green, prints possible remaining words sorted by word weight above) ----------
+# Simulate a Wordle Game.
+def playWordle():
+         
+    def check_guess(answer, guess): 
+        guesscode = ["", "", "", "", ""]
+        
+        if guess not in allwords:
+            return print("That is not a valid word!")
+        
+        elif guess in allwords:   
+            
+            for x in range(len(guess)): 
+                
+                if guess[x] in answer: 
+                    guesscode[x] = "Y"
+                
+                if answer[x] == guess[x]: 
+                    guesscode[x] = "G" 
+                
+                if guess[x] not in answer: 
+                    guesscode[x] = "B"
+                         
+            return guesscode
+        
+    def split(guess):
+        return list(guess)
+    
+    result = dict(zip(split(guess), check_guess(answer, guess)))
+            
+    return result
 
-# Green is "g"
-# Yellow is "y"
-# Black is "b" - calling is black is easier, so to have a new letter B to use.
+print(playWordle())
 
-# Put the letter hints we get from the game into lists.
+# Output the results from the simulation into a string that can be put into the later functions.
+def color_hints():
+    color_hints = []
+    colorstr = ""
+    for values in playWordle().values():
+        color_hints.append(values)
+    colorstr = colorstr.join(color_hints)    
+    return colorstr
+
+print(color_hints())
+
+# After getting feedback from a word, divide the letters into different lists to be processed later.
 def letter_info(letter_hints: list):
   black_letter = []
   green_letter = []
   yellow_letter = []
+
   for l, hint in letter_hints:
     if hint.lower() == 'b':
       black_letter.append(l)
+    
     elif hint.lower() == 'g':
       green_letter.append((l, guessed.index(l)))
+    
     else:
       yellow_letter.append((l, guessed.index(l)))
+    
   return black_letter, green_letter, yellow_letter
 
-# Words with green letters get added to possible words list, with the green letter in the same index.
-# Started putting things into sets to easily do unions and intersections and make sure no duplicates exist.
-def with_green(word_list, green_letter):
+# What to do with green letters (keep only in same place)
+def with_green(word_list, green_letter):   
   if len(green_letter) > 0:
     possible_words = []
     for w in word_list:
@@ -158,7 +122,7 @@ def with_green(word_list, green_letter):
   else:
     return word_list
 
-# Remove words with black letters, put them in a discard list.
+# What to do with black letters (delete all)
 def with_black(word_list: list, black_letter: list):
   if len(black_letter) > 0:
     discard = []
@@ -170,7 +134,7 @@ def with_black(word_list: list, black_letter: list):
   else:
     return []
 
-# Words with yellow letters get added to possible words list, with the yellow letter in a different index.
+# What to do with yellow letters (delete, keep complementary set)
 def with_yellow(word_list: list, yellow_letter: list):
   if len(yellow_letter) > 0:
     possible_words = []
@@ -181,37 +145,29 @@ def with_yellow(word_list: list, yellow_letter: list):
   else:
     return word_list
 
+# Function for the all-green correct word.
 def correct_word(green_letter):
   word = ['_', '_', '_', '_', '_']
   for letter, idx in green_letter:
     word[idx] = letter
   return ''.join(word)
 
-
 word_list = []
-words = allwords
+words = answerwords
 for i in words:
   if len(i) == 5:
     word_list.append(i.lower())
 
-word_list = list(set(word_list))
-hint = int(input(f"Inspiration starters (choose a number): "))
-if hint:
-  for word in list((sorted_weights(word_list)[:hint])):
-    print(word)
-else:
-  print("Ok, think of your own.")
-print("__________________________")
-
+# Using the generated hints from earlier...
 while True:
-  guessed = input("Type guess: ").lower()
-  result = input("Type feedback: (bgy)")
+  guessed = guess
+  result = color_hints()
 
   if result != 'ggggg':
     letter_hints = list(zip(list(guessed), list(result)))
-    black_letter, green_letter, yellow_letter = letter_info(letter_hints)
+    black_letter, green_letter, yellow_letter = letter_info(letter_hints)    
+    discard = with_black(word_list, black_letter)   
     
-    discard = with_black(word_list, black_letter)
     for ds in discard:
       word_list.remove(ds)
     corrects_list = with_green(word_list, green_letter)
@@ -235,12 +191,3 @@ while True:
       print(f"Correct solution is: {guessed}")
       break
   
-
-
-# ---------- PART 5: SOLVER 2 (Runs solver 1 with a condition) ----------
-
-# The idea is, IF len(possible_words) > remaining_attempts, AND all (possible_answers) have GGG, try entirely new letters. 
-# Get new info, and when you break the green cycle, proceed with guesser 1 again.
-
-
-
